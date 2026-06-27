@@ -2,6 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function ProductsPage({ products }) {
+
+  if (!products || products.length === 0) {
+    return <div className="p-6 text-center text-gray-600">Loading products or API error...</div>;
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
@@ -45,12 +50,26 @@ export default function ProductsPage({ products }) {
 }
 
 export async function getStaticProps() {
-  const res = await fetch("https://fakestoreapi.com/products");
-  const products = await res.json();
+  try {
+    const res = await fetch("https://fakestoreapi.com/products");
+    if (!res.ok) {
+      return { props: { products: [] } };
+    }
 
-  return {
-    props: {
-      products,
-    },
-  };
+    const products = await res.json();
+
+    return {
+      props: {
+        products,
+      },
+      revalidate: 10, 
+    };
+  } catch (error) {
+    console.error("Build fetch failed:", error);
+    return {
+      props: {
+        products: [], 
+      },
+    };
+  }
 }
