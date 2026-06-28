@@ -1,10 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function ProductsPage({ products }) {
+export default function ProductsPage({ products ,error }) {
+
+  if (error) {
+    return <div>Error loading products from API.</div>;
+  } 
 
   if (!products || products.length === 0) {
-    return <div className="p-6 text-center text-gray-600">Loading products or API error...</div>;
+    return <div className="p-6 text-center text-gray-600">No products found </div>;
   }
 
   return (
@@ -53,7 +57,7 @@ export async function getStaticProps() {
   try {
     const res = await fetch("https://fakestoreapi.com/products");
     if (!res.ok) {
-      return { props: { products: [] } };
+      throw new Error('Failed to fetch data') ; 
     }
 
     const products = await res.json();
@@ -61,6 +65,7 @@ export async function getStaticProps() {
     return {
       props: {
         products,
+        error : false ,
       },
       revalidate: 10, 
     };
@@ -68,7 +73,8 @@ export async function getStaticProps() {
     console.error("Build fetch failed:", error);
     return {
       props: {
-        products: [], 
+        products: null, 
+        error : true ,
       },
     };
   }
